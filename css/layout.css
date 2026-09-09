@@ -1,0 +1,6 @@
+.game-layout { display: grid; grid-template-columns: 280px 1fr; grid-template-rows: 60px 1fr; height: 100vh; gap: 5px; padding: 5px; }
+.zone-a, .zone-b, .zone-c, .zone-d { background-color: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 15px; }
+.zone-a { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; justify-content: center; }
+.zone-b { grid-column: 1; grid-row: 2; overflow-y: auto; font-family: monospace; font-size:1.1rem; }
+.zone-c { grid-column: 2; grid-row: 1; display: flex; align-items: center; gap: 15px; }
+.zone-d { grid-column: 2; grid-row: 2; overflow-y: auto; position: relative; }

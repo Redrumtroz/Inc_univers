@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dev Studio Incremental</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="td.css">
+    
+    <!-- Styles Modulaires -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/tree.css">
+    <link rel="stylesheet" href="css/td.css">
 </head>
 <body>
     <div class="game-layout">
@@ -24,15 +29,22 @@
 
         <aside class="zone-b" id="resource-container"></aside>
 
-        <!-- Conteneur principal qui recevra les fichiers HTML externes -->
+        <!-- Conteneur principal des onglets -->
         <main class="zone-d" id="main-container">
             <p style="text-align: center; color: #aaa; margin-top: 20px;">Chargement des modules...</p>
         </main>
     </div>
 
-    <script src="database.js"></script>
-    <script src="ui.js"></script>
-    <script src="td.js"></script>
-    <script src="game.js"></script>
+    <!-- 1. Données -->
+    <script src="js/data/database.js"></script>
+    
+    <!-- 2. Interface (UI) -->
+    <script src="js/ui/core.js"></script>
+    <script src="js/ui/builders.js"></script>
+    <script src="js/ui/tree.js"></script>
+    
+    <!-- 3. Moteur et Mini-jeux -->
+    <script src="js/game/td.js"></script>
+    <script src="js/game/engine.js"></script>
 </body>
 </html>

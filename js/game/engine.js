@@ -1,13 +1,19 @@
 const Game = {
     clickPower: 1, multipliers: { code:1, gfx:1, sound:1 },
     async init() {
-        // Attend le chargement de l'HTML externe avant de lier les boutons
         await UI.loadTabsHTML();
         
         this.load(); 
-        UI.setupEvents(); UI.buildResources(); UI.buildGenerators(); UI.buildUpgrades(); UI.buildSkills(); 
-        TD.init(); UI.updateScreen();
-        setInterval(() => this.tick(), 1000); setInterval(() => this.save(), 10000);
+        UI.setupEvents(); 
+        UI.buildResources(); 
+        UI.buildGenerators(); 
+        UI.buildUpgrades(); 
+        UI.buildSkills(); 
+        TD.init(); 
+        UI.updateScreen();
+        
+        setInterval(() => this.tick(), 1000); 
+        setInterval(() => this.save(), 10000);
     },
     manualGather(res) { ResourceDB[res].amount += this.clickPower; UI.updateScreen(); },
     buyGenerator(id) {

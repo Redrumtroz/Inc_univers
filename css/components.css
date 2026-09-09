@@ -1,0 +1,14 @@
+.resource-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+.tab-btn { background: none; border: none; color: #94a3b8; font-size: 1rem; cursor: pointer; padding: 5px 10px; transition: color 0.2s; }
+.tab-btn:hover { color: #f8fafc; }
+.tab-btn.active { color: #38bdf8; border-bottom: 2px solid #38bdf8; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.btn-main-action { background-color: #0ea5e9; color: white; font-size: 1.1rem; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+.btn-main-action:active { transform: scale(0.95); background-color: #38bdf8; }
+.game-btn { background-color: #334155; color: white; border: 1px solid #475569; padding: 12px; cursor: pointer; border-radius: 6px; margin-bottom: 10px; width: 100%; text-align: left; display: block; transition: 0.2s; }
+.game-btn:hover:not(:disabled) { background-color: #475569; }
+.game-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.upgrade-btn { background-color: #312e81; border-color: #4f46e5; }
+.upgrade-btn:hover:not(:disabled) { background-color: #3730a3; }
