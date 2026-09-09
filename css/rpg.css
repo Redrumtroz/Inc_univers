@@ -1,0 +1,56 @@
+.rpg-arena {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #020617;
+    padding: 20px;
+    border: 2px solid #334155;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.rpg-entity {
+    flex: 1;
+    background: #0f172a;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+    text-align: center;
+}
+
+.rpg-vs {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #64748b;
+    padding: 0 20px;
+}
+
+.rpg-entity.hero {
+    border-color: #38bdf8;
+}
+
+.rpg-entity.monster {
+    border-color: #ef4444;
+}
+
+.hp-bar-bg {
+    width: 100%;
+    height: 15px;
+    background: #334155;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.hp-bar-fill {
+    height: 100%;
+    transition: width 0.2s;
+}
+
+.hero-hp {
+    background: #22c55e;
+}
+
+.monster-hp {
+    background: #ef4444;
+}

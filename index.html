@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dev Studio Incremental</title>
-    
+
     <!-- Styles Modulaires -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/tree.css">
     <link rel="stylesheet" href="css/td.css">
+    <link rel="stylesheet" href="css/rpg.css">
 </head>
 <body>
     <div class="game-layout">
@@ -25,6 +26,7 @@
             <button class="tab-btn" onclick="openTab(event, 'tab-3')">R&D (Arbre)</button>
             <button class="tab-btn" onclick="openTab(event, 'tab-5')">Mini-Jeux</button>
             <button class="tab-btn" onclick="openTab(event, 'tab-4')">Paramètres</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-6')">RPG</button>
         </nav>
 
         <aside class="zone-b" id="resource-container"></aside>
@@ -45,6 +47,7 @@
     
     <!-- 3. Moteur et Mini-jeux -->
     <script src="js/game/td.js"></script>
+    <script src="js/game/rpg.js"></script>
     <script src="js/game/engine.js"></script>
 </body>
 </html>

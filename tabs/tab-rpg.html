@@ -1,0 +1,29 @@
+<div id="tab-6" class="tab-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2>Test de Mini-Jeu : Auto-RPG</h2>
+        <strong style="color: #a855f7; font-size: 1.2rem;">Niveau <span id="rpg-level">1</span></strong>
+    </div>
+
+    <div class="rpg-arena">
+        <!-- Le Héros -->
+        <div class="rpg-entity hero">
+            <h3>Héros <span id="hero-lvl">Nv.1</span></h3>
+            <div class="hp-bar-bg"><div class="hp-bar-fill hero-hp" id="hero-hp-bar"></div></div>
+            <p>PV : <span id="hero-hp-text">100/100</span></p>
+            <p>Dégâts : <span id="hero-atk">10</span></p>
+            <button class="btn-main-action" style="padding: 5px 10px; font-size: 0.9rem;" onclick="RPG.upgradeHero()">
+                Améliorer (Coût: <span id="hero-upg-cost">50</span> Code)
+            </button>
+        </div>
+
+        <div class="rpg-vs">VS</div>
+
+        <!-- Le Monstre -->
+        <div class="rpg-entity monster">
+            <h3 id="monster-name">Slime</h3>
+            <div class="hp-bar-bg"><div class="hp-bar-fill monster-hp" id="monster-hp-bar"></div></div>
+            <p>PV : <span id="monster-hp-text">50/50</span></p>
+            <p>Dégâts : <span id="monster-atk">5</span></p>
+        </div>
+    </div>
+</div>

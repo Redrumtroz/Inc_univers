@@ -1,6 +1,6 @@
 const UI = {
     async loadTabsHTML() {
-        const tabs = ['tab-studio.html', 'tab-equipment.html', 'tab-tree.html', 'tab-settings.html', 'tab-defense.html'];
+        const tabs = ['tab-studio.html', 'tab-equipment.html', 'tab-tree.html', 'tab-settings.html', 'tab-defense.html', 'tab-rpg.html'];
         const container = document.getElementById("main-container");
         container.innerHTML = ""; 
         

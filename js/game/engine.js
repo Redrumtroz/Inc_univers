@@ -9,7 +9,8 @@ const Game = {
         UI.buildGenerators(); 
         UI.buildUpgrades(); 
         UI.buildSkills(); 
-        TD.init(); 
+        TD.init();
+        RPG.init();
         UI.updateScreen();
         
         setInterval(() => this.tick(), 1000); 
@@ -41,7 +42,7 @@ const Game = {
     },
     save() {
         try {
-            let data = { r: ResourceDB, g: GeneratorDB, u: UpgradeDB, s: SkillDB, cp: this.clickPower, m: this.multipliers, t: TD.towers, w: TD.wave };
+            let data = { r: ResourceDB, g: GeneratorDB, u: UpgradeDB, s: SkillDB, cp: this.clickPower, m: this.multipliers, t: TD.towers, w: TD.wave, rpg: RPG.hero };
             localStorage.setItem("JeuStudioSave", JSON.stringify(data));
             UI.showSaveMessage();
         } catch(e) { console.error("Erreur save:", e); }
@@ -55,14 +56,17 @@ const Game = {
                 if(d.u) for(let k in d.u) if(UpgradeDB[k]) Object.assign(UpgradeDB[k], d.u[k]);
                 if(d.s) for(let k in d.s) if(SkillDB[k]) Object.assign(SkillDB[k], d.s[k]);
                 if(d.cp) this.clickPower = d.cp; if(d.m) this.multipliers = d.m; 
-                if(d.t) TD.towers = d.t; if(d.w) TD.wave = d.w;
+                if (d.t) TD.towers = d.t; if (d.w) TD.wave = d.w;
+                if (d.rpg) RPG.hero = d.rpg;
             }
         } catch(e) {}
     },
     reset() { if(confirm("Effacer la progression ?")) { localStorage.removeItem("JeuStudioSave"); location.reload(); } },
     tick() {
         for(let k in GeneratorDB) if(GeneratorDB[k].amount > 0) for(let r in GeneratorDB[k].production) ResourceDB[r].amount += GeneratorDB[k].production[r] * GeneratorDB[k].amount * (this.multipliers[r]||1);
-        TD.tick(); UI.updateScreen();
+        TD.tick();
+        RPG.tick();
+        UI.updateScreen();
     }
 };
 
