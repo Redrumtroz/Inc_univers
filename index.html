@@ -44,7 +44,25 @@
             </div>
 
             <div id="tab-5" class="tab-content">
-                <h2>Défense du Territoire</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Défense du Territoire</h2>
+                    <strong style="color: #e74c3c; font-size: 1.2rem;">Vague <span id="td-wave">1</span></strong>
+                </div>
+
+                <!-- Menu de sélection des tours -->
+                <div class="td-controls">
+                    <button id="btn-sel-archer" class="td-select-btn active" onclick="TD.selectTower('archer')">
+                        <strong>Archer</strong><br><small>50 Bois, 10 Pierre<br>Dégâts: 10 | Portée: 2</small>
+                    </button>
+                    <button id="btn-sel-canon" class="td-select-btn" onclick="TD.selectTower('canon')">
+                        <strong>Canon</strong><br><small>150 Bois, 50 Pierre<br>Dégâts: 40 | Portée: 1</small>
+                    </button>
+                    <button id="btn-sel-baliste" class="td-select-btn" onclick="TD.selectTower('baliste')">
+                        <strong>Baliste</strong><br><small>400 Bois, 150 Pierre<br>Dégâts: 100 | Portée: 4</small>
+                    </button>
+                </div>
+
+                <p style="color: #4CAF50; font-size: 0.9rem; margin-bottom: 10px;">Sélectionnez une tour puis cliquez sur l'herbe pour construire.</p>
                 <div id="td-board" class="td-board"></div>
             </div>
 

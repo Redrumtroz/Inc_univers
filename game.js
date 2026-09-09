@@ -30,7 +30,7 @@ const Game = {
     },
     save() {
         try {
-            let data = { r: ResourceDB, g: GeneratorDB, u: UpgradeDB, s: SkillDB, cp: this.clickPower, m: this.multipliers, t: TD.towers };
+            let data = { r: ResourceDB, g: GeneratorDB, u: UpgradeDB, s: SkillDB, cp: this.clickPower, m: this.multipliers, t: TD.towers, w: TD.wave };
             localStorage.setItem("JeuMultiSave", JSON.stringify(data));
             UI.showSaveMessage();
         } catch(e) { console.error("Erreur de sauvegarde:", e); }
@@ -43,7 +43,10 @@ const Game = {
                 if(d.g) for(let k in d.g) if(GeneratorDB[k]) Object.assign(GeneratorDB[k], d.g[k]);
                 if(d.u) for(let k in d.u) if(UpgradeDB[k]) Object.assign(UpgradeDB[k], d.u[k]);
                 if(d.s) for(let k in d.s) if(SkillDB[k]) Object.assign(SkillDB[k], d.s[k]);
-                if(d.cp) this.clickPower = d.cp; if(d.m) this.multipliers = d.m; if(d.t) TD.towers = d.t;
+                if (d.cp) this.clickPower = d.cp; if (d.m) this.multipliers = d.m;
+
+                if (d.t) TD.towers = d.t;
+                if (d.w) TD.wave = d.w;
             }
         } catch(e) { console.error("Erreur de chargement:", e); }
     },
