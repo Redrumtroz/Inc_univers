@@ -1,169 +1,66 @@
-﻿const UI = {
+const UI = {
     setupEvents() {
-        document.getElementById("btn-manual-gather").addEventListener("click", () => {
-            Game.manualGather("food");
-        });
-        document.getElementById("btn-save").addEventListener("click", () => Game.save());
-        document.getElementById("btn-reset").addEventListener("click", () => Game.reset());
+        let b1 = document.getElementById("btn-manual-gather"); if(b1) b1.onclick = () => Game.manualGather("food");
+        let b2 = document.getElementById("btn-save"); if(b2) b2.onclick = () => Game.save();
+        let b3 = document.getElementById("btn-reset"); if(b3) b3.onclick = () => Game.reset();
     },
-
-    openTab(event, tabId) {
-        document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
-        document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-        document.getElementById(tabId).classList.add("active");
-        event.currentTarget.classList.add("active");
-    },
-
     showSaveMessage() {
-        const msg = document.getElementById("save-msg");
-        if (msg) {
-            msg.style.display = "block";
-            setTimeout(() => { msg.style.display = "none"; }, 2000); // Disparaît après 2 secondes
-        }
+        let msg = document.getElementById("save-msg");
+        if(msg) { msg.style.display = "block"; setTimeout(() => msg.style.display = "none", 2000); }
     },
-
     buildResources() {
-        const container = document.getElementById("resource-container");
-        container.innerHTML = "<strong>Ressources</strong><br><br>";
-        for (const key in ResourceDB) {
-            const res = ResourceDB[key];
-            if (res.unlocked) {
-                container.innerHTML += `
-                    <div class="resource-row" id="row-${key}">
-                        <span style="color: ${res.color}">${res.name}</span>
-                        <span id="val-${key}">0 / ${res.max}</span>
-                    </div>`;
-            }
-        }
+        let c = document.getElementById("resource-container"); c.innerHTML = "<strong>Ressources</strong><br><br>";
+        for(let k in ResourceDB) if(ResourceDB[k].unlocked) c.innerHTML += `<div class="resource-row"><span style="color:${ResourceDB[k].color}">${ResourceDB[k].name}</span><span id="val-${k}">0 / ${ResourceDB[k].max}</span></div>`;
     },
-
     buildGenerators() {
-        const container = document.getElementById("generator-container");
-        container.innerHTML = ""; 
-        for (const key in GeneratorDB) {
-            const gen = GeneratorDB[key];
-            if (gen.unlocked) {
-                let costText = "";
-                for (const res in gen.baseCost) {
-                    costText += `<span id="cost-${key}-${res}">${getCost(key, res)}</span> ${ResourceDB[res].name} `;
-                }
-                const btn = document.createElement("button");
-                btn.id = `btn-${key}`;
-                btn.className = "game-btn";
-                btn.innerHTML = `<strong>${gen.name}</strong> (<span id="amt-${key}">0</span>) <br> Coût : ${costText}`;
-                btn.onclick = () => Game.buyGenerator(key);
-                container.appendChild(btn);
+        let c = document.getElementById("generator-container"); c.innerHTML = "";
+        for(let k in GeneratorDB) {
+            if(GeneratorDB[k].unlocked) {
+                let txt = ""; for(let r in GeneratorDB[k].baseCost) txt += `<span id="cost-${k}-${r}">${getCost(k,r)}</span> ${ResourceDB[r].name} `;
+                c.innerHTML += `<button id="btn-${k}" class="game-btn" onclick="Game.buyGenerator('${k}')"><strong>${GeneratorDB[k].name}</strong> (<span id="amt-${k}">${GeneratorDB[k].amount}</span>)<br>Coût: ${txt}</button>`;
             }
         }
     },
-
     buildUpgrades() {
-        const container = document.getElementById("upgrade-container");
-        container.innerHTML = "";
-        for (const key in UpgradeDB) {
-            const upg = UpgradeDB[key];
-            // On affiche seulement si débloqué ET non acheté
-            if (upg.unlocked && !upg.purchased) {
-                let costText = "";
-                for (const res in upg.cost) {
-                    costText += `<span id="upg-cost-${key}-${res}">${upg.cost[res]}</span> ${ResourceDB[res].name} `;
-                }
-                const btn = document.createElement("button");
-                btn.id = `btn-upg-${key}`;
-                btn.className = "game-btn upgrade-btn";
-                btn.innerHTML = `<strong>${upg.name}</strong><br><small style="color:#ccc;">${upg.description}</small><br><br>Coût : ${costText}`;
-                btn.onclick = () => Game.buyUpgrade(key);
-                container.appendChild(btn);
+        let c = document.getElementById("upgrade-container"); c.innerHTML = "";
+        for(let k in UpgradeDB) {
+            if(UpgradeDB[k].unlocked && !UpgradeDB[k].purchased) {
+                let txt = ""; for(let r in UpgradeDB[k].cost) txt += `${UpgradeDB[k].cost[r]} ${ResourceDB[r].name} `;
+                c.innerHTML += `<button id="btn-upg-${k}" class="game-btn upgrade-btn" onclick="Game.buyUpgrade('${k}')"><strong>${UpgradeDB[k].name}</strong><br><small>${UpgradeDB[k].description}</small><br>Coût: ${txt}</button>`;
             }
         }
     },
-
     buildSkills() {
-        const container = document.getElementById("skill-tree-container");
-        container.innerHTML = "";
-
-        for (const key in SkillDB) {
-            const skill = SkillDB[key];
-            const btn = document.createElement("div");
-            btn.id = `skill-${key}`;
-
-            let costText = "";
-            for (const res in skill.cost) costText += `${skill.cost[res]} ${ResourceDB[res].name} `;
-            let reqText = skill.req ? `<br><small>Requis: ${SkillDB[skill.req].name}</small>` : "";
-
-            btn.innerHTML = `<strong>${skill.name}</strong><br><small>${skill.desc}</small><br><br>Coût: ${costText}${reqText}`;
-            btn.onclick = () => Game.buySkill(key);
-            container.appendChild(btn);
+        let c = document.getElementById("skill-tree-container"); c.innerHTML = "";
+        for(let k in SkillDB) {
+            let txt = ""; for(let r in SkillDB[k].cost) txt += `${SkillDB[k].cost[r]} ${ResourceDB[r].name} `;
+            c.innerHTML += `<div id="skill-${k}" class="skill-node" onclick="Game.buySkill('${k}')"><strong>${SkillDB[k].name}</strong><br><small>${SkillDB[k].desc}</small><br>Coût: ${txt}</div>`;
         }
     },
-
-    setupEvents() {
-        const btnGather = document.getElementById("btn-manual-gather");
-        if (btnGather) btnGather.addEventListener("click", () => Game.manualGather("food"));
-
-        const btnSave = document.getElementById("btn-save");
-        if (btnSave) btnSave.addEventListener("click", () => Game.save());
-
-        const btnReset = document.getElementById("btn-reset");
-        if (btnReset) btnReset.addEventListener("click", () => Game.reset());
-    },
-
     updateScreen() {
-        // Rafraichir les ressources
-        for (const key in ResourceDB) {
-            const res = ResourceDB[key];
-            if (res.amount > res.max) res.amount = res.max; // Limite max
-            if (res.unlocked && document.getElementById(`val-${key}`)) {
-                document.getElementById(`val-${key}`).innerText = `${Math.floor(res.amount)} / ${res.max}`;
-            }
+        for(let k in ResourceDB) {
+            if(ResourceDB[k].amount > ResourceDB[k].max) ResourceDB[k].amount = ResourceDB[k].max;
+            let el = document.getElementById(`val-${k}`); if(el) el.innerText = `${Math.floor(ResourceDB[k].amount)} / ${ResourceDB[k].max}`;
         }
-
-        // Rafraichir l'état (cliquable/grisé) des générateurs
-        for (const genId in GeneratorDB) {
-            const gen = GeneratorDB[genId];
-            if (gen.unlocked && document.getElementById(`btn-${genId}`)) {
-                let canAfford = true;
-                for (const res in gen.baseCost) {
-                    if (ResourceDB[res].amount < getCost(genId, res)) canAfford = false;
-                }
-                document.getElementById(`btn-${genId}`).disabled = !canAfford;
-            }
+        for(let k in GeneratorDB) {
+            let el = document.getElementById(`btn-${k}`);
+            if(el) { let aff = true; for(let r in GeneratorDB[k].baseCost) if(ResourceDB[r].amount < getCost(k,r)) aff = false; el.disabled = !aff; }
         }
-
-        // Rafraichir l'état des améliorations
-        for (const upgId in UpgradeDB) {
-            const upg = UpgradeDB[upgId];
-            if (upg.unlocked && !upg.purchased && document.getElementById(`btn-upg-${upgId}`)) {
-                let canAfford = true;
-                for (const res in upg.cost) {
-                    if (ResourceDB[res].amount < upg.cost[res]) canAfford = false;
-                }
-                document.getElementById(`btn-upg-${upgId}`).disabled = !canAfford;
-            }
-        }
-
-        // Mise à jour de l'arbre de compétences
-        for (const key in SkillDB) {
-            const skill = SkillDB[key];
-            const btn = document.getElementById(`skill-${key}`);
-            if (!btn) continue;
-
-            btn.className = "skill-node"; // Reset des classes
-
-            let reqMet = !skill.req || SkillDB[skill.req].purchased;
-            let canAfford = true;
-            for (const res in skill.cost) if (ResourceDB[res].amount < skill.cost[res]) canAfford = false;
-
-            if (skill.purchased) {
-                btn.classList.add("purchased");
-                btn.onclick = null;
-            } else if (reqMet && canAfford) {
-                btn.classList.add("available");
-            } else {
-                btn.classList.add("locked");
+        for(let k in SkillDB) {
+            let el = document.getElementById(`skill-${k}`);
+            if(el) {
+                el.className = "skill-node";
+                let req = !SkillDB[k].req || SkillDB[SkillDB[k].req].purchased;
+                let aff = true; for(let r in SkillDB[k].cost) if(ResourceDB[r].amount < SkillDB[k].cost[r]) aff = false;
+                if(SkillDB[k].purchased) { el.classList.add("purchased"); }
+                else if(req && aff) { el.classList.add("available"); }
+                else { el.classList.add("locked"); }
             }
         }
     }
 };
-
-window.openTab = UI.openTab;
+function openTab(e, id) {
+    document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(id).classList.add("active"); e.currentTarget.classList.add("active");
+}

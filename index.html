@@ -1,99 +1,65 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeu Incrémental - Base</title>
+    <title>Mon Empire</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="td.css">
 </head>
 <body>
     <div class="game-layout">
-
-        <!-- ZONE A : En-tête -->
         <header class="zone-a">
             <h1>Mon Empire</h1>
             <p>Ère de la Découverte</p>
         </header>
 
-        <!-- ZONE C : Navigation -->
         <nav class="zone-c">
             <button class="tab-btn active" onclick="openTab(event, 'tab-1')">Bâtiments</button>
             <button class="tab-btn" onclick="openTab(event, 'tab-2')">Améliorations</button>
             <button class="tab-btn" onclick="openTab(event, 'tab-3')">Compétences</button>
-            <button class="tab-btn" onclick="openTab(event, 'tab-4')">Paramètres</button>
             <button class="tab-btn" onclick="openTab(event, 'tab-5')">Défense</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-4')">Paramètres</button>
         </nav>
 
-        <!-- ZONE B : Affichage global (Ressources/Stats) -->
-        <aside class="zone-b" id="resource-container">
-            <!-- Les ressources seront générées ici par JavaScript -->
-        </aside>
+        <aside class="zone-b" id="resource-container"></aside>
 
-        <!-- ZONE D : Contenu des onglets -->
         <main class="zone-d">
-            <!-- ONGLET 1 : BATIMENTS ET ACTIONS -->
             <div id="tab-1" class="tab-content active">
                 <h2>Actions Manuelles</h2>
                 <button id="btn-manual-gather" class="btn-main-action">Chercher de la Nourriture</button>
-
                 <hr style="margin: 20px 0; border: 1px solid #333;">
-
                 <h2>Bâtiments & Ouvriers</h2>
-                <div id="generator-container">
-                    <!-- Généré par JS -->
-                </div>
+                <div id="generator-container"></div>
             </div>
 
-            <!-- ONGLET 2 : AMELIORATIONS -->
             <div id="tab-2" class="tab-content">
                 <h2>Recherche & Améliorations</h2>
-                <p>Achetez ces améliorations uniques pour progresser plus vite et débloquer de nouvelles mécaniques.</p>
-                <div id="upgrade-container" style="margin-top: 15px;">
-                    <!-- Généré par JS -->
-                </div>
+                <div id="upgrade-container" style="margin-top: 15px;"></div>
             </div>
 
-            <!-- ONGLET 3 : ARBRE -->
             <div id="tab-3" class="tab-content">
-                <strong>Arbre de Compétences</strong>
-                <p style="margin-bottom: 15px; color: #aaa;">Débloquez des talents permanents pour optimiser votre empire.</p>
-                <div id="skill-tree-container" class="skill-tree">
-                    <!-- Généré par JS -->
-                </div>
+                <h2>Arbre de Compétences</h2>
+                <div id="skill-tree-container" class="skill-tree" style="margin-top:15px;"></div>
             </div>
 
-            <!-- ONGLET 4 : PARAMETRE -->
+            <div id="tab-5" class="tab-content">
+                <h2>Défense du Territoire</h2>
+                <div id="td-board" class="td-board"></div>
+            </div>
+
             <div id="tab-4" class="tab-content">
                 <h2>Paramètres du Jeu</h2>
-                <p style="color: #aaa;">Le jeu se sauvegarde automatiquement toutes les 10 secondes.</p>
-
                 <div style="margin-top: 20px;">
                     <button id="btn-save" class="btn-main-action" style="background-color: #2980b9;">Sauvegarder maintenant</button>
                     <button id="btn-reset" class="btn-main-action" style="background-color: #c0392b; margin-left: 10px;">Effacer la sauvegarde</button>
                 </div>
-
                 <p id="save-msg" style="color: #2ecc71; margin-top: 15px; display: none; font-weight: bold;">Jeu sauvegardé avec succès !</p>
-            </div>
-
-            <!-- ONGLET 5 : DEFENSE -->
-            <div id="tab-5" class="tab-content">
-                <h2>Défense du Territoire</h2>
-                <div style="margin-bottom: 15px; background: #222; padding: 10px; border-radius: 5px; display: inline-block;">
-                    <strong>Tour de base</strong><br>
-                    <small style="color: #aaa;">Coût : 50 Bois, 10 Pierre | Dégâts : 10 | Portée : 2 cases</small><br>
-                    <small style="color: #4CAF50;">(Cliquez sur une case vide de la grille pour construire)</small>
-                </div>
-
-                <!-- Le plateau de jeu -->
-                <div id="td-board" class="td-board">
-                    <!-- Généré par JavaScript -->
-                </div>
             </div>
         </main>
     </div>
 
-    <!-- Chargement des scripts séparés -->
+    <!-- Ordre crucial des scripts -->
     <script src="database.js"></script>
     <script src="ui.js"></script>
     <script src="td.js"></script>
