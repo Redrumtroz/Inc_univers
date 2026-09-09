@@ -1,6 +1,21 @@
 const UI = {
+    async loadTabsHTML() {
+        const tabs = ['tab-studio.html', 'tab-equipment.html', 'tab-tree.html', 'tab-settings.html', 'tab-defense.html'];
+        const container = document.getElementById("main-container");
+        container.innerHTML = ""; // Vide le texte de chargement
+        
+        for (const file of tabs) {
+            try {
+                const response = await fetch('tabs/' + file);
+                const html = await response.text();
+                container.insertAdjacentHTML('beforeend', html);
+            } catch(e) {
+                console.error("Erreur de chargement pour " + file, e);
+            }
+        }
+    },
     setupEvents() {
-        let b1 = document.getElementById("btn-manual-gather"); if(b1) b1.onclick = () => Game.manualGather("food");
+        let b1 = document.getElementById("btn-manual-gather"); if(b1) b1.onclick = () => Game.manualGather("ideas");
         let b2 = document.getElementById("btn-save"); if(b2) b2.onclick = () => Game.save();
         let b3 = document.getElementById("btn-reset"); if(b3) b3.onclick = () => Game.reset();
     },
@@ -9,7 +24,7 @@ const UI = {
         if(msg) { msg.style.display = "block"; setTimeout(() => msg.style.display = "none", 2000); }
     },
     buildResources() {
-        let c = document.getElementById("resource-container"); c.innerHTML = "<strong>Ressources</strong><br><br>";
+        let c = document.getElementById("resource-container"); c.innerHTML = "<strong>Ressources du Studio</strong><br><br>";
         for(let k in ResourceDB) if(ResourceDB[k].unlocked) c.innerHTML += `<div class="resource-row"><span style="color:${ResourceDB[k].color}">${ResourceDB[k].name}</span><span id="val-${k}">0 / ${ResourceDB[k].max}</span></div>`;
     },
     buildGenerators() {
@@ -34,26 +49,22 @@ const UI = {
         let svg = document.getElementById("tree-svg");
         let nodes = document.getElementById("tree-nodes");
         if (!svg || !nodes) return;
+        
+        svg.innerHTML = ""; nodes.innerHTML = "";
 
-        svg.innerHTML = "";
-        nodes.innerHTML = "";
-
-        for (let k in SkillDB) {
+        for(let k in SkillDB) {
             let s = SkillDB[k];
-
-            // 1. Dessiner la ligne de connexion si un prérequis existe
-            if (s.req && SkillDB[s.req]) {
+            if(s.req && SkillDB[s.req]) {
                 let p = SkillDB[s.req];
                 svg.innerHTML += `<line x1="${p.x}" y1="${p.y}" x2="${s.x}" y2="${s.y}" stroke="#334155" stroke-width="4" id="line-${k}" />`;
             }
 
-            // 2. Créer le nœud visuel
-            let txt = ""; for (let r in s.cost) txt += `${s.cost[r]} ${ResourceDB[r] ? ResourceDB[r].name : r} `;
+            let txt = ""; for(let r in s.cost) txt += `${s.cost[r]} ${ResourceDB[r] ? ResourceDB[r].name : r} `;
             nodes.innerHTML += `
                 <div id="skill-${k}" class="tree-node locked" style="left:${s.x}px; top:${s.y}px;" onclick="Game.buySkill('${k}')">
                     ${s.icon}
                     <div class="tooltip">
-                        <strong style="color:#f1c40f;">${s.name}</strong><br>
+                        <strong style="color:#f59e0b;">${s.name}</strong><br>
                         <span style="color:#ccc;">${s.desc}</span><br>
                         <hr style="margin:5px 0; border-color:#444;">
                         Coût : ${txt}
@@ -62,37 +73,40 @@ const UI = {
         }
     },
     updateScreen() {
-        for (let k in ResourceDB) {
-            if (ResourceDB[k].amount > ResourceDB[k].max) ResourceDB[k].amount = ResourceDB[k].max;
-            let el = document.getElementById(`val-${k}`); if (el) el.innerText = `${Math.floor(ResourceDB[k].amount)} / ${ResourceDB[k].max}`;
+        for(let k in ResourceDB) {
+            if(ResourceDB[k].amount > ResourceDB[k].max) ResourceDB[k].amount = ResourceDB[k].max;
+            let el = document.getElementById(`val-${k}`); if(el) el.innerText = `${Math.floor(ResourceDB[k].amount)} / ${ResourceDB[k].max}`;
         }
-        for (let k in GeneratorDB) {
+        for(let k in GeneratorDB) {
             let el = document.getElementById(`btn-${k}`);
-            if (el) { let aff = true; for (let r in GeneratorDB[k].baseCost) if (ResourceDB[r].amount < getCost(k, r)) aff = false; el.disabled = !aff; }
+            if(el) { let aff = true; for(let r in GeneratorDB[k].baseCost) if(ResourceDB[r].amount < getCost(k,r)) aff = false; el.disabled = !aff; }
         }
-        for (let k in SkillDB) {
+        for(let k in SkillDB) {
             let el = document.getElementById(`skill-${k}`);
             let line = document.getElementById(`line-${k}`);
-            if (el) {
+            if(el) {
                 let s = SkillDB[k];
                 let reqMet = !s.req || SkillDB[s.req].purchased;
-                let aff = true; for (let r in s.cost) if (ResourceDB[r].amount < s.cost[r]) aff = false;
-
+                let aff = true; for(let r in s.cost) if(ResourceDB[r].amount < s.cost[r]) aff = false;
+                
                 el.className = "tree-node";
-                if (line) line.setAttribute("stroke", "#334155"); // Couleur de base
+                if(line) line.setAttribute("stroke", "#334155");
 
-                if (s.purchased) {
-                    el.classList.add("purchased");
-                    if (line) line.setAttribute("stroke", "#f1c40f"); // Ligne dorée
+                if(s.purchased) { 
+                    el.classList.add("purchased"); 
+                    if(line) line.setAttribute("stroke", "#f59e0b");
                 }
-                else if (reqMet && aff) { el.classList.add("available"); }
+                else if(reqMet && aff) { el.classList.add("available"); }
                 else { el.classList.add("locked"); }
             }
         }
     }
 };
+
 function openTab(e, id) {
     document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    document.getElementById(id).classList.add("active"); e.currentTarget.classList.add("active");
+    let target = document.getElementById(id);
+    if(target) target.classList.add("active"); 
+    e.currentTarget.classList.add("active");
 }

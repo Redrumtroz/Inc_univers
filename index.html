@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Empire</title>
+    <title>Dev Studio Incremental</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="td.css">
 </head>
 <body>
     <div class="game-layout">
         <header class="zone-a">
-            <h1>Mon Empire</h1>
-            <p>Ère de la Découverte</p>
+            <h1>Mon Studio</h1>
+            <p>Développement de Jeux</p>
         </header>
 
         <nav class="zone-c">
@@ -24,64 +24,12 @@
 
         <aside class="zone-b" id="resource-container"></aside>
 
-        <main class="zone-d">
-            <div id="tab-1" class="tab-content active">
-                <h2>Actions Manuelles</h2>
-                <button id="btn-manual-gather" class="btn-main-action">Chercher de la Nourriture</button>
-                <hr style="margin: 20px 0; border: 1px solid #333;">
-                <h2>Bâtiments & Ouvriers</h2>
-                <div id="generator-container"></div>
-            </div>
-
-            <div id="tab-2" class="tab-content">
-                <h2>Recherche & Améliorations</h2>
-                <div id="upgrade-container" style="margin-top: 15px;"></div>
-            </div>
-
-            <div id="tab-3" class="tab-content">
-                <h2>Recherche et Développement</h2>
-                <p style="color: #aaa; margin-bottom: 10px;">Dépensez vos ressources pour concevoir de nouvelles technologies.</p>
-                <div class="tree-map" id="skill-tree-container">
-                    <svg class="tree-svg" id="tree-svg"></svg>
-                    <div class="tree-node-container" id="tree-nodes"></div>
-                </div>
-            </div>
-
-            <div id="tab-5" class="tab-content">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2>Défense du Territoire</h2>
-                    <strong style="color: #e74c3c; font-size: 1.2rem;">Vague <span id="td-wave">1</span></strong>
-                </div>
-
-                <!-- Menu de sélection des tours -->
-                <div class="td-controls">
-                    <button id="btn-sel-archer" class="td-select-btn active" onclick="TD.selectTower('archer')">
-                        <strong>Archer</strong><br><small>50 Bois, 10 Pierre<br>Dégâts: 10 | Portée: 2</small>
-                    </button>
-                    <button id="btn-sel-canon" class="td-select-btn" onclick="TD.selectTower('canon')">
-                        <strong>Canon</strong><br><small>150 Bois, 50 Pierre<br>Dégâts: 40 | Portée: 1</small>
-                    </button>
-                    <button id="btn-sel-baliste" class="td-select-btn" onclick="TD.selectTower('baliste')">
-                        <strong>Baliste</strong><br><small>400 Bois, 150 Pierre<br>Dégâts: 100 | Portée: 4</small>
-                    </button>
-                </div>
-
-                <p style="color: #4CAF50; font-size: 0.9rem; margin-bottom: 10px;">Sélectionnez une tour puis cliquez sur l'herbe pour construire.</p>
-                <div id="td-board" class="td-board"></div>
-            </div>
-
-            <div id="tab-4" class="tab-content">
-                <h2>Paramètres du Jeu</h2>
-                <div style="margin-top: 20px;">
-                    <button id="btn-save" class="btn-main-action" style="background-color: #2980b9;">Sauvegarder maintenant</button>
-                    <button id="btn-reset" class="btn-main-action" style="background-color: #c0392b; margin-left: 10px;">Effacer la sauvegarde</button>
-                </div>
-                <p id="save-msg" style="color: #2ecc71; margin-top: 15px; display: none; font-weight: bold;">Jeu sauvegardé avec succès !</p>
-            </div>
+        <!-- Conteneur principal qui recevra les fichiers HTML externes -->
+        <main class="zone-d" id="main-container">
+            <p style="text-align: center; color: #aaa; margin-top: 20px;">Chargement des modules...</p>
         </main>
     </div>
 
-    <!-- Ordre crucial des scripts -->
     <script src="database.js"></script>
     <script src="ui.js"></script>
     <script src="td.js"></script>

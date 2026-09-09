@@ -1,6 +1,9 @@
 const Game = {
-    clickPower: 1, multipliers: { wood:1, stone:1 },
-    init() {
+    clickPower: 1, multipliers: { code:1, gfx:1, sound:1 },
+    async init() {
+        // Attend le chargement de l'HTML externe avant de lier les boutons
+        await UI.loadTabsHTML();
+        
         this.load(); 
         UI.setupEvents(); UI.buildResources(); UI.buildGenerators(); UI.buildUpgrades(); UI.buildSkills(); 
         TD.init(); UI.updateScreen();
@@ -16,7 +19,7 @@ const Game = {
         let aff = true; for(let r in u.cost) if(ResourceDB[r].amount < u.cost[r]) aff = false;
         if(aff) {
             for(let r in u.cost) ResourceDB[r].amount -= u.cost[r]; u.purchased = true;
-            if(id==="stone_tools") this.clickPower*=2; if(id==="mining_tech") { ResourceDB.stone.unlocked=true; GeneratorDB.miner.unlocked=true; }
+            if(id==="coffee") this.clickPower*=2; if(id==="git_repo") this.multipliers.code*=2;
             UI.buildUpgrades(); UI.buildResources(); UI.buildGenerators(); UI.updateScreen();
         }
     },
@@ -24,38 +27,37 @@ const Game = {
         let s = SkillDB[id]; if(s.purchased || (s.req && !SkillDB[s.req].purchased)) return;
         let aff = true; for(let r in s.cost) if(ResourceDB[r].amount < s.cost[r]) aff = false;
         if(aff) {
-            if (id === "engine_2d") { GeneratorDB.designer.unlocked = true; ResourceDB.gfx.unlocked = true; }
-            if (id === "sfx_synth") { ResourceDB.sound.unlocked = true; }
+            for(let r in s.cost) ResourceDB[r].amount -= s.cost[r]; s.purchased = true;
+            if(id==="engine_2d") { GeneratorDB.designer.unlocked=true; ResourceDB.gfx.unlocked=true; }
+            if(id==="sfx_synth") { ResourceDB.sound.unlocked=true; }
             UI.updateScreen();
         }
     },
     save() {
         try {
             let data = { r: ResourceDB, g: GeneratorDB, u: UpgradeDB, s: SkillDB, cp: this.clickPower, m: this.multipliers, t: TD.towers, w: TD.wave };
-            localStorage.setItem("JeuMultiSave", JSON.stringify(data));
+            localStorage.setItem("JeuStudioSave", JSON.stringify(data));
             UI.showSaveMessage();
-        } catch(e) { console.error("Erreur de sauvegarde:", e); }
+        } catch(e) { console.error("Erreur save:", e); }
     },
     load() {
         try {
-            let d = JSON.parse(localStorage.getItem("JeuMultiSave"));
+            let d = JSON.parse(localStorage.getItem("JeuStudioSave"));
             if(d) {
                 if(d.r) for(let k in d.r) if(ResourceDB[k]) Object.assign(ResourceDB[k], d.r[k]);
                 if(d.g) for(let k in d.g) if(GeneratorDB[k]) Object.assign(GeneratorDB[k], d.g[k]);
                 if(d.u) for(let k in d.u) if(UpgradeDB[k]) Object.assign(UpgradeDB[k], d.u[k]);
                 if(d.s) for(let k in d.s) if(SkillDB[k]) Object.assign(SkillDB[k], d.s[k]);
-                if (d.cp) this.clickPower = d.cp; if (d.m) this.multipliers = d.m;
-
-                if (d.t) TD.towers = d.t;
-                if (d.w) TD.wave = d.w;
+                if(d.cp) this.clickPower = d.cp; if(d.m) this.multipliers = d.m; 
+                if(d.t) TD.towers = d.t; if(d.w) TD.wave = d.w;
             }
-        } catch(e) { console.error("Erreur de chargement:", e); }
+        } catch(e) {}
     },
-    reset() { if(confirm("Effacer la progression ?")) { localStorage.removeItem("JeuMultiSave"); location.reload(); } },
+    reset() { if(confirm("Effacer la progression ?")) { localStorage.removeItem("JeuStudioSave"); location.reload(); } },
     tick() {
         for(let k in GeneratorDB) if(GeneratorDB[k].amount > 0) for(let r in GeneratorDB[k].production) ResourceDB[r].amount += GeneratorDB[k].production[r] * GeneratorDB[k].amount * (this.multipliers[r]||1);
         TD.tick(); UI.updateScreen();
     }
 };
 
-window.onload = () => Game.init();
+window.onload = async () => { await Game.init(); };

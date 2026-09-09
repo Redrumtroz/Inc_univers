@@ -1,0 +1,21 @@
+<div id="tab-5" class="tab-content">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Test de Mini-Jeu : Tower Defense</h2>
+        <strong style="color: #e74c3c; font-size: 1.2rem;">Vague <span id="td-wave">1</span></strong>
+    </div>
+    
+    <div class="td-controls">
+        <button id="btn-sel-archer" class="td-select-btn active" onclick="TD.selectTower('archer')">
+            <strong>Tourelle Basique</strong><br><small>50 Code, 10 GFX<br>Dégâts: 10 | Portée: 2</small>
+        </button>
+        <button id="btn-sel-canon" class="td-select-btn" onclick="TD.selectTower('canon')">
+            <strong>Canon Lourd</strong><br><small>150 Code, 50 GFX<br>Dégâts: 40 | Portée: 1</small>
+        </button>
+        <button id="btn-sel-baliste" class="td-select-btn" onclick="TD.selectTower('baliste')">
+            <strong>Sniper Laser</strong><br><small>400 Code, 150 GFX<br>Dégâts: 100 | Portée: 4</small>
+        </button>
+    </div>
+    
+    <p style="color: #4CAF50; font-size: 0.9rem; margin-bottom: 10px;">Sélectionnez une tour puis cliquez sur la carte pour la placer.</p>
+    <div id="td-board" class="td-board"></div>
+</div>

@@ -1,60 +1,16 @@
-.td-board { display: grid; grid-template-columns: repeat(10, 45px); grid-template-rows: repeat(7, 45px); gap: 1px; background: #111; border: 2px solid #444; width: max-content; margin-top: 10px; }
-.td-cell { width: 45px; height: 45px; background: #27ae60; position: relative; cursor: pointer; }
-.td-cell:hover { background: #2ecc71; }
-.td-path { background: #d35400; cursor: not-allowed; }
-.td-path:hover { background: #d35400; }
-.td-tower { width: 35px; height: 35px; background: #2980b9; border: 2px solid #ecf0f1; border-radius: 4px; position: absolute; top: 3px; left: 3px; pointer-events: none; }
-.td-enemy { width: 25px; height: 25px; background: #8e44ad; border-radius: 50%; position: absolute; top: 10px; left: 10px; box-shadow: 0 0 8px #9b59b6; pointer-events: none; }
-.td-hp-bar { position: absolute; top: -8px; left: -5px; width: 35px; height: 5px; background: red; }
-.td-hp-fill { height: 100%; background: #2ecc71; }
-/* Interface de sélection */
-.td-controls {
-    margin-bottom: 15px;
-    padding: 10px;
-    background: #222;
-    border-radius: 5px;
-    display: flex;
-    gap: 10px;
-}
-
-.td-select-btn {
-    flex: 1;
-    padding: 8px;
-    border: 2px solid transparent;
-    background: #333;
-    color: white;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: 0.2s;
-}
-
-    .td-select-btn:hover {
-        background: #444;
-    }
-
-    .td-select-btn.active {
-        border-color: #f1c40f;
-        background: #2c3e50;
-    }
-
-/* Visuels des Tours */
-.td-tower {
-    pointer-events: none;
-}
-
-.td-tower-archer {
-    background: #2980b9;
-    border-radius: 4px;
-}
-
-.td-tower-canon {
-    background: #34495e;
-    border-radius: 50%;
-    border: 3px solid #7f8c8d;
-}
-
-.td-tower-baliste {
-    background: #8e44ad;
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-    border: none;
-}
+.td-controls { margin-bottom: 15px; padding: 10px; background: #0f172a; border-radius: 5px; display: flex; gap: 10px; }
+.td-select-btn { flex: 1; padding: 8px; border: 2px solid transparent; background: #334155; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; }
+.td-select-btn:hover { background: #475569; }
+.td-select-btn.active { border-color: #38bdf8; background: #0c4a6e; }
+.td-board { display: grid; grid-template-columns: repeat(10, 45px); grid-template-rows: repeat(7, 45px); gap: 1px; background: #020617; border: 2px solid #334155; width: max-content; margin-top: 10px; }
+.td-cell { width: 45px; height: 45px; background: #166534; position: relative; cursor: pointer; }
+.td-cell:hover { background: #15803d; }
+.td-path { background: #78350f; cursor: not-allowed; }
+.td-path:hover { background: #78350f; }
+.td-tower { width: 35px; height: 35px; position: absolute; top: 3px; left: 3px; pointer-events: none; }
+.td-tower-archer { background: #0ea5e9; border-radius: 4px; border: 2px solid #e0f2fe; }
+.td-tower-canon { background: #475569; border-radius: 50%; border: 3px solid #cbd5e1; }
+.td-tower-baliste { background: #8b5cf6; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); border: none; }
+.td-enemy { width: 25px; height: 25px; background: #ef4444; border-radius: 50%; position: absolute; top: 10px; left: 10px; box-shadow: 0 0 8px #b91c1c; pointer-events: none; }
+.td-hp-bar { position: absolute; top: -8px; left: -5px; width: 35px; height: 5px; background: #7f1d1d; }
+.td-hp-fill { height: 100%; background: #22c55e; }

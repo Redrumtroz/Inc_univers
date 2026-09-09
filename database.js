@@ -1,8 +1,8 @@
 const ResourceDB = {
-    ideas: { name: "Idées", amount: 0, max: 500, color: "#f1c40f", unlocked: true },
-    code: { name: "Lignes de Code", amount: 0, max: 300, color: "#3498db", unlocked: true },
-    gfx: { name: "Graphismes", amount: 0, max: 150, color: "#e74c3c", unlocked: false },
-    sound: { name: "Audio", amount: 0, max: 100, color: "#9b59b6", unlocked: false }
+    ideas: { name: "Idées", amount: 0, max: 500, color: "#f59e0b", unlocked: true },
+    code: { name: "Lignes de Code", amount: 0, max: 300, color: "#38bdf8", unlocked: true },
+    gfx: { name: "Graphismes", amount: 0, max: 150, color: "#f43f5e", unlocked: false },
+    sound: { name: "Audio", amount: 0, max: 100, color: "#a855f7", unlocked: false }
 };
 
 const GeneratorDB = {
@@ -16,7 +16,6 @@ const UpgradeDB = {
     git_repo: { name: "Dépôt Git", description: "Les programmeurs sont 2x plus efficaces.", cost: { code: 100 }, purchased: false, unlocked: true }
 };
 
-// Arbre de talents avec coordonnées (x, y) pour le placement visuel
 const SkillDB = {
     engine_2d: { name: "Moteur 2D", desc: "Débloque la création visuelle.", icon: "⚙️", cost: { ideas: 100, code: 50 }, req: null, purchased: false, x: 100, y: 250 },
     pixel_art: { name: "Pixel Art", desc: "Débloque le métier Graphiste.", icon: "🎨", cost: { code: 100 }, req: "engine_2d", purchased: false, x: 250, y: 150 },
@@ -25,4 +24,6 @@ const SkillDB = {
     mini_game_rpg: { name: "Module RPG", desc: "Création d'un jeu de rôle.", icon: "⚔️", cost: { code: 300, sound: 50 }, req: "sfx_synth", purchased: false, x: 400, y: 350 }
 };
 
-function getCost(genId, resId) { return Math.floor(GeneratorDB[genId].baseCost[resId] * Math.pow(GeneratorDB[genId].costMultiplier, GeneratorDB[genId].amount)); }
+function getCost(genId, resId) { 
+    return Math.floor(GeneratorDB[genId].baseCost[resId] * Math.pow(GeneratorDB[genId].costMultiplier, GeneratorDB[genId].amount)); 
+}
