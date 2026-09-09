@@ -24,8 +24,9 @@ const Game = {
         let s = SkillDB[id]; if(s.purchased || (s.req && !SkillDB[s.req].purchased)) return;
         let aff = true; for(let r in s.cost) if(ResourceDB[r].amount < s.cost[r]) aff = false;
         if(aff) {
-            for(let r in s.cost) ResourceDB[r].amount -= s.cost[r]; s.purchased = true;
-            if(id==="click_mastery") this.clickPower+=2; if(id==="forestry") this.multipliers.wood*=2; UI.updateScreen();
+            if (id === "engine_2d") { GeneratorDB.designer.unlocked = true; ResourceDB.gfx.unlocked = true; }
+            if (id === "sfx_synth") { ResourceDB.sound.unlocked = true; }
+            UI.updateScreen();
         }
     },
     save() {

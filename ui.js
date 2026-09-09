@@ -31,29 +31,61 @@ const UI = {
         }
     },
     buildSkills() {
-        let c = document.getElementById("skill-tree-container"); c.innerHTML = "";
-        for(let k in SkillDB) {
-            let txt = ""; for(let r in SkillDB[k].cost) txt += `${SkillDB[k].cost[r]} ${ResourceDB[r].name} `;
-            c.innerHTML += `<div id="skill-${k}" class="skill-node" onclick="Game.buySkill('${k}')"><strong>${SkillDB[k].name}</strong><br><small>${SkillDB[k].desc}</small><br>Coût: ${txt}</div>`;
+        let svg = document.getElementById("tree-svg");
+        let nodes = document.getElementById("tree-nodes");
+        if (!svg || !nodes) return;
+
+        svg.innerHTML = "";
+        nodes.innerHTML = "";
+
+        for (let k in SkillDB) {
+            let s = SkillDB[k];
+
+            // 1. Dessiner la ligne de connexion si un prérequis existe
+            if (s.req && SkillDB[s.req]) {
+                let p = SkillDB[s.req];
+                svg.innerHTML += `<line x1="${p.x}" y1="${p.y}" x2="${s.x}" y2="${s.y}" stroke="#334155" stroke-width="4" id="line-${k}" />`;
+            }
+
+            // 2. Créer le nœud visuel
+            let txt = ""; for (let r in s.cost) txt += `${s.cost[r]} ${ResourceDB[r] ? ResourceDB[r].name : r} `;
+            nodes.innerHTML += `
+                <div id="skill-${k}" class="tree-node locked" style="left:${s.x}px; top:${s.y}px;" onclick="Game.buySkill('${k}')">
+                    ${s.icon}
+                    <div class="tooltip">
+                        <strong style="color:#f1c40f;">${s.name}</strong><br>
+                        <span style="color:#ccc;">${s.desc}</span><br>
+                        <hr style="margin:5px 0; border-color:#444;">
+                        Coût : ${txt}
+                    </div>
+                </div>`;
         }
     },
     updateScreen() {
-        for(let k in ResourceDB) {
-            if(ResourceDB[k].amount > ResourceDB[k].max) ResourceDB[k].amount = ResourceDB[k].max;
-            let el = document.getElementById(`val-${k}`); if(el) el.innerText = `${Math.floor(ResourceDB[k].amount)} / ${ResourceDB[k].max}`;
+        for (let k in ResourceDB) {
+            if (ResourceDB[k].amount > ResourceDB[k].max) ResourceDB[k].amount = ResourceDB[k].max;
+            let el = document.getElementById(`val-${k}`); if (el) el.innerText = `${Math.floor(ResourceDB[k].amount)} / ${ResourceDB[k].max}`;
         }
-        for(let k in GeneratorDB) {
+        for (let k in GeneratorDB) {
             let el = document.getElementById(`btn-${k}`);
-            if(el) { let aff = true; for(let r in GeneratorDB[k].baseCost) if(ResourceDB[r].amount < getCost(k,r)) aff = false; el.disabled = !aff; }
+            if (el) { let aff = true; for (let r in GeneratorDB[k].baseCost) if (ResourceDB[r].amount < getCost(k, r)) aff = false; el.disabled = !aff; }
         }
-        for(let k in SkillDB) {
+        for (let k in SkillDB) {
             let el = document.getElementById(`skill-${k}`);
-            if(el) {
-                el.className = "skill-node";
-                let req = !SkillDB[k].req || SkillDB[SkillDB[k].req].purchased;
-                let aff = true; for(let r in SkillDB[k].cost) if(ResourceDB[r].amount < SkillDB[k].cost[r]) aff = false;
-                if(SkillDB[k].purchased) { el.classList.add("purchased"); }
-                else if(req && aff) { el.classList.add("available"); }
+            let line = document.getElementById(`line-${k}`);
+            if (el) {
+                let s = SkillDB[k];
+                let reqMet = !s.req || SkillDB[s.req].purchased;
+                let aff = true; for (let r in s.cost) if (ResourceDB[r].amount < s.cost[r]) aff = false;
+
+                el.className = "tree-node";
+                if (line) line.setAttribute("stroke", "#334155"); // Couleur de base
+
+                if (s.purchased) {
+                    el.classList.add("purchased");
+                    if (line) line.setAttribute("stroke", "#f1c40f"); // Ligne dorée
+                }
+                else if (reqMet && aff) { el.classList.add("available"); }
                 else { el.classList.add("locked"); }
             }
         }
