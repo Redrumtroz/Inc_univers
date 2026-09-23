@@ -1,25 +1,29 @@
+﻿<!-- tabs/tab-village.html -->
 <div id="tab-1" class="tab-content active" style="height: 100%; display: flex; flex-direction: column;">
-    <!-- En-tête / Stats (Incrémental classique + Ville) -->
-    <div style="display: flex; gap: 20px; background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; align-items: center;">
-        <button id="btn-manual-gather" class="btn-main-action" style="margin-top:0;">Couper du Bois</button>
-        <div style="width: 2px; height: 40px; background: #334155;"></div>
-        <div class="cb-stat-box">
-            <span class="cb-stat-title">Population</span>
-            <div id="ui-pop" class="cb-stat-val">0</div>
+
+    <!-- Barre de statistiques du village (Inspirée de ton ancien #stats-panel) -->
+    <div style="display: flex; gap: 20px; background: #1e293b; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155;">
+        <div>
+            <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Population</span>
+            <div id="ui-pop" style="font-size: 1.2rem; font-weight: bold; color: #f8fafc;">0</div>
         </div>
-        <div class="cb-stat-box">
-            <span class="cb-stat-title">Bâtiments</span>
-            <div id="ui-bld" class="cb-stat-val">0</div>
+        <div>
+            <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Bâtiments</span>
+            <div id="ui-bld" style="font-size: 1.2rem; font-weight: bold; color: #f8fafc;">0</div>
         </div>
-        <div class="cb-stat-box">
-            <span class="cb-stat-title">Humeur Globale</span>
-            <div id="ui-happy" class="cb-stat-val" style="color: #94a3b8;">Neutre</div>
+        <div>
+            <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Humeur Globale</span>
+            <div id="ui-happy" style="font-size: 1.2rem; font-weight: bold; color: #22c55e;">Neutre</div>
         </div>
     </div>
 
-    <!-- Le City Builder -->
+    <!-- Le conteneur du Canvas -->
     <div id="canvas-container" style="flex: 1; position: relative; border-radius: 8px; overflow: hidden; border: 2px solid #334155;">
         <canvas id="worldCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
-        <div id="build-toolbar" class="cb-toolbar"></div>
+
+        <!-- Palette d'outils flottante -->
+        <div id="build-toolbar" style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.9); padding: 10px; border-radius: 12px; display: flex; gap: 10px; border: 1px solid #475569;">
+            <!-- Les boutons seront générés ici par JS selon BuildingDB -->
+        </div>
     </div>
 </div>
