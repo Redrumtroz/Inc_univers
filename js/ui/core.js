@@ -8,7 +8,7 @@ const UI = {
                 const response = await fetch('tabs/' + file);
                 const html = await response.text();
                 container.insertAdjacentHTML('beforeend', html);
-            } catch(e) {}
+            } catch(e) { console.error(e); }
         }
     },
     setupEvents() {

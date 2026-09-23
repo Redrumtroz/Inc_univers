@@ -2,9 +2,9 @@ const TD = {
     width: 10, height: 7, towers: [], enemies: [], wave: 1, enemiesKilled: 0, selectedType: 'archer',
     path: [{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:2,y:2},{x:2,y:3},{x:3,y:3},{x:4,y:3},{x:5,y:3},{x:5,y:2},{x:5,y:1},{x:6,y:1},{x:7,y:1},{x:8,y:1},{x:8,y:2},{x:8,y:3},{x:8,y:4},{x:8,y:5},{x:9,y:5}],
     towerTypes: {
-        archer: { cost: { code: 50, gfx: 10 }, damage: 10, range: 2, css: "td-tower-archer" },
-        canon: { cost: { code: 150, gfx: 50 }, damage: 40, range: 1, css: "td-tower-canon" },
-        baliste: { cost: { code: 400, gfx: 150 }, damage: 100, range: 4, css: "td-tower-baliste" }
+        archer: { cost: { wood: 50, stone: 10 }, damage: 10, range: 2, css: "td-tower-archer" },
+        canon: { cost: { wood: 150, stone: 50 }, damage: 40, range: 1, css: "td-tower-canon" },
+        baliste: { cost: { wood: 400, stone: 150 }, damage: 100, range: 4, css: "td-tower-baliste" }
     },
     init() {
         let b = document.getElementById("td-board"); if(!b) return; b.innerHTML = "";
@@ -27,12 +27,11 @@ const TD = {
     selectTower(type) {
         this.selectedType = type;
         document.querySelectorAll(".td-select-btn").forEach(b => b.classList.remove("active"));
-        document.getElementById("btn-sel-" + type).classList.add("active");
+        let btn = document.getElementById("btn-sel-" + type); if(btn) btn.classList.add("active");
     },
     buildTower(x, y) {
         if(this.towers.some(t => t.x===x && t.y===y)) return;
         let def = this.towerTypes[this.selectedType];
-        
         let canAfford = true;
         for(let res in def.cost) if(ResourceDB[res].amount < def.cost[res]) canAfford = false;
         
@@ -45,6 +44,7 @@ const TD = {
         }
     },
     tick() {
+        let b = document.getElementById("td-board"); if(!b) return; // Ne tick pas si pas chargé
         for(let i=this.enemies.length-1; i>=0; i--) { this.enemies[i].pathIndex++; if(this.enemies[i].pathIndex >= this.path.length) this.enemies.splice(i,1); }
         if(Math.random() < 0.3) {
             let maxHp = Math.floor(50 * Math.pow(1.2, this.wave - 1));
@@ -58,7 +58,7 @@ const TD = {
         for(let i=this.enemies.length-1; i>=0; i--) { 
             if(this.enemies[i].hp <= 0) { 
                 this.enemies.splice(i,1); 
-                ResourceDB.ideas.amount += Math.floor(15 * Math.pow(1.1, this.wave - 1));
+                ResourceDB.gold.amount += Math.floor(5 * Math.pow(1.1, this.wave - 1));
                 this.enemiesKilled++;
                 if(this.enemiesKilled >= 10) { this.enemiesKilled = 0; this.wave++; let wUI = document.getElementById("td-wave"); if(wUI) wUI.innerText = this.wave; }
             } 
