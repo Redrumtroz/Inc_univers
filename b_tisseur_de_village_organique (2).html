@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bâtisseur de Village Organique - Rendu Vectoriel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #cdd9c2; /* Vert prairie plus doux et pastel */
+            font-family: 'Nunito', sans-serif;
+            touch-action: none;
+            user-select: none;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ffffff;
+            padding: 12px;
+            border-radius: 16px;
+            border: 3px solid #2f3130;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .build-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 85px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: #f9fafb;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .build-btn:hover { background: #f3f4f6; transform: translateY(-2px); }
+        .build-btn:active { transform: translateY(2px); }
+        .build-btn.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            box-shadow: inset 0 0 0 2px #3b82f6;
+        }
+
+        .btn-icon { width: 50px; height: 50px; }
+        .btn-label { font-size: 12px; font-weight: 800; color: #374151; margin-top: 4px; }
+
+        #stats-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #ffffff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 3px solid #2f3130;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+            pointer-events: none;
+            display: flex;
+            gap: 20px;
+        }
+        
+        .stat-item { display: flex; flex-direction: column; align-items: center; }
+
+    </style>
+</head>
+<body>
+<div id="game-container">
+    <canvas id="worldCanvas"></canvas>
+    
+    <div id="stats-panel">
+        <div class="stat-item">
+            <span class="text-gray-500 text-xs font-bold uppercase tracking-wider">Population</span>
+            <span id="pop-count" class="text-xl font-bold text-gray-800">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="text-gray-500 text-xs font-bold uppercase tracking-wider">Bâtiments</span>
+            <span id="bld-count" class="text-xl font-bold text-gray-800">0</span>
+        </div>
+    </div>
+
+    <div id="ui-panel">
+        <button class="build-btn selected" data-type="house">
+            <canvas class="btn-icon" id="icon-house" width="50" height="50"></canvas>
+            <span class="btn-label">Maison</span>
+        </button>
+        <button class="build-btn" data-type="tavern">
+            <canvas class="btn-icon" id="icon-tavern" width="50" height="50"></canvas>
+            <span class="btn-label">Taverne</span>
+        </button>
+        <button class="build-btn" data-type="tower">
+            <canvas class="btn-icon" id="icon-tower" width="50" height="50"></canvas>
+            <span class="btn-label">Garde</span>
+        </button>
+        <button class="build-btn" data-type="market">
+            <canvas class="btn-icon" id="icon-market" width="50" height="50"></canvas>
+            <span class="btn-label">Halles</span>
+        </button>
+        <button class="build-btn" data-type="windmill">
+            <canvas class="btn-icon" id="icon-windmill" width="50" height="50"></canvas>
+            <span class="btn-label">Moulin</span>
+        </button>
+        <button class="build-btn" data-type="tree">
+            <canvas class="btn-icon" id="icon-tree" width="50" height="50"></canvas>
+            <span class="btn-label">Arbre</span>
+        </button>
+        <button class="build-btn" data-type="remove" style="border-color: #fca5a5; background: #fef2f2;">
+            <div style="font-size:24px; margin-bottom: 2px;">🗑️</div>
+            <span class="btn-label text-red-600">Détruire</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    const ASSETS = {
+        windmillTower: new Image(),
+        windmillBlades: new Image()
+    };
+    ASSETS.windmillTower.src = 'https://raw.githubusercontent.com/Redrumtroz/Inc_univers/main/Images/Moulin_Tour.png';
+    ASSETS.windmillBlades.src = 'https://raw.githubusercontent.com/Redrumtroz/Inc_univers/main/Images/Moulin_Palles.png';
+
+    const canvas = document.getElementById('worldCanvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    
+    let cam = { x: 0, y: 0, zoom: 1 };
+    let isDragging = false;
+    let lastMouse = { x: 0, y: 0 };
+    let mouseWorld = { x: 0, y: 0 };
+    let selectedTool = 'house';
+    let canBuild = true; 
+    
+    let entities = []; 
+    let globalConnections = [];
+    let closePairs = []; 
+    let urbanProps = []; 
+    let stats = { pop: 0, bld: 0 };
+    let hoveredEntity = null; // NOUVEAU: Entité survolée
+
+    // NOUVELLES COULEURS POUR LES QUARTIERS
+    const PALETTE = {
+        grass: '#cdd9c2',
+        path: '#e3d4b6',
+        plazaBase: '#b8c2bc', // Zone de fond du quartier (Gris clair)
+        roadUrban: '#969e9a', // Routes à l'intérieur du quartier (Gris sombre)
+        wallLight: '#f4f1ea',
+        wallDark: '#e0dbd1',
+        roofLight: '#b48a78',
+        roofDark: '#997161',
+        woodLight: '#8a6b4e',
+        woodDark: '#6a5035',
+        stoneLight: '#c2c4c4',
+        stoneDark: '#a1a3a4',
+        tree: '#6ea06a'
+    };
+
+    function iso(x, y, z = 0) {
+        return {
+            x: (x - y) * 0.866,
+            y: (x + y) * 0.5 - z
+        };
+    }
+
+    function drawIsoPoly(cx, pts3d, fillColor) {
+        if (pts3d.length === 0) return;
+        cx.beginPath();
+        let p0 = iso(pts3d[0].x, pts3d[0].y, pts3d[0].z);
+        cx.moveTo(p0.x, p0.y);
+        for(let i=1; i<pts3d.length; i++) {
+            let p = iso(pts3d[i].x, pts3d[i].y, pts3d[i].z);
+            cx.lineTo(p.x, p.y);
+        }
+        cx.closePath();
+        if(fillColor) { 
+            cx.fillStyle = fillColor; 
+            cx.fill(); 
+        }
+    }
+
+    function init() {
+        resize();
+        window.addEventListener('resize', resize);
+        
+        canvas.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+        
+        canvas.addEventListener('touchstart', (e) => {
+            if(e.touches.length > 1) return;
+            e.clientX = e.touches[0].clientX; e.clientY = e.touches[0].clientY; e.button = 0;
+            onMouseDown(e);
+        });
+        window.addEventListener('touchmove', (e) => {
+            if(e.touches.length > 1) return;
+            e.clientX = e.touches[0].clientX; e.clientY = e.touches[0].clientY;
+            onMouseMove(e);
+        }, {passive: false});
+        window.addEventListener('touchend', onMouseUp);
+
+        document.querySelectorAll('.build-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.build-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedTool = btn.dataset.type;
+            });
+        });
+        
+        generateUIcons();
+        generateStartingCity();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    function screenToWorld(sx, sy) {
+        return {
+            x: (sx - canvas.width / 2) / cam.zoom + cam.x,
+            y: (sy - canvas.height / 2) / cam.zoom + cam.y
+        };
+    }
+
+    function onMouseDown(e) {
+        if (e.target !== canvas) return;
+        if (e.button === 2 || e.shiftKey) { 
+            isDragging = true;
+            lastMouse.x = e.clientX; lastMouse.y = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        } else if (e.button === 0) { 
+            let w = screenToWorld(e.clientX, e.clientY);
+            if (selectedTool === 'remove') removeEntityAt(w.x, w.y);
+            else if (canBuild) addEntity(w.x, w.y, selectedTool);
+        }
+    }
+
+    function onMouseMove(e) {
+        if (isDragging) {
+            cam.x -= (e.clientX - lastMouse.x) / cam.zoom;
+            cam.y -= (e.clientY - lastMouse.y) / cam.zoom;
+            lastMouse.x = e.clientX; lastMouse.y = e.clientY;
+        }
+        mouseWorld = screenToWorld(e.clientX, e.clientY);
+
+        hoveredEntity = null;
+        canBuild = true; 
+        let minDist = 40;
+        
+        for (let i = 0; i < entities.length; i++) {
+            let d = Math.hypot(entities[i].x - mouseWorld.x, entities[i].y - mouseWorld.y);
+            if (d < minDist) { minDist = d; hoveredEntity = entities[i]; }
+            if (d < 45 && selectedTool !== 'remove') { canBuild = false; }
+        }
+    }
+
+    function onMouseUp(e) {
+        isDragging = false;
+        canvas.style.cursor = 'crosshair';
+    }
+    window.addEventListener('contextmenu', e => e.preventDefault());
+
+    function addEntity(x, y, type) {
+        let flip = Math.random() > 0.5;
+        if (type === 'market' || type === 'tree' || type === 'windmill') flip = false; 
+
+        let props = [];
+        if (type !== 'tree') {
+            let propCount = Math.floor(Math.random() * 3);
+            for(let i=0; i<propCount; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let dist = 20 + Math.random() * 15;
+                props.push({
+                    type: ['barrel', 'flowerpot', 'bush'][Math.floor(Math.random()*3)],
+                    dx: Math.cos(angle) * dist,
+                    dy: Math.sin(angle) * dist * 0.6
+                });
+            }
+        }
+
+        const entity = {
+            id: Math.random().toString(36).substr(2, 9),
+            x: x, y: y, type: type, flip: flip,
+            inNeighborhood: false, // État de quartier
+            details: {
+                hasChimney: Math.random() > 0.4,
+                roofVariant: Math.random() > 0.7 ? '#8b6b5d' : null,
+                leafVariant: Math.random() > 0.7 ? '#7fa16a' : PALETTE.tree,
+                props: props
+            }
+        };
+        
+        entities.push(entity);
+        recalculateNetwork(); 
+        updateStats();
+    }
+
+    function removeEntityAt(x, y) {
+        let index = -1, minDist = 50;
+        for (let i = 0; i < entities.length; i++) {
+            let d = Math.hypot(entities[i].x - x, entities[i].y - y);
+            if (d < minDist) { minDist = d; index = i; }
+        }
+        if (index > -1) {
+            entities.splice(index, 1);
+            recalculateNetwork();
+            updateStats();
+        }
+    }
+
+    // Calcule la distance entre un point (p) et un segment de ligne (v, w)
+    function distToSegment(p, v, w) {
+        let l2 = Math.pow(v.x - w.x, 2) + Math.pow(v.y - w.y, 2);
+        if (l2 === 0) return { d: Math.hypot(p.x - v.x, p.y - v.y), pt: v, t: 0 };
+        let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        let proj = { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) };
+        return { d: Math.hypot(p.x - proj.x, p.y - proj.y), pt: proj, t: t };
+    }
+
+    function recalculateNetwork() {
+        globalConnections = [];
+        closePairs = []; 
+        urbanProps = []; 
+        
+        // Réinitialisation de l'état "Quartier"
+        entities.forEach(e => {
+            e.inNeighborhood = false;
+        });
+        
+        let buildingEntities = entities.filter(e => e.type !== 'tree');
+        
+        // --- 1. DETECTION DES QUARTIERS (Densité) ---
+        for(let i=0; i<buildingEntities.length; i++) {
+            for(let j=i+1; j<buildingEntities.length; j++) {
+                let e1 = buildingEntities[i];
+                let e2 = buildingEntities[j];
+                let d = Math.hypot(e1.x - e2.x, e1.y - e2.y);
+
+                if (d < 220) {
+                    closePairs.push({a: e1, b: e2});
+                    e1.inNeighborhood = true;
+                    e2.inNeighborhood = true;
+
+                    // Génération d'éléments de densité urbaine
+                    let midX = (e1.x + e2.x) / 2;
+                    let midY = (e1.y + e2.y) / 2;
+                    let seed = Math.floor(midX + midY); 
+                    
+                    if (seed % 3 === 0) {
+                        urbanProps.push({
+                            x: midX + (seed % 50 - 25),
+                            y: midY + (seed % 40 - 20),
+                            type: seed % 2 === 0 ? 'prop_house' : 'prop_stall',
+                            flip: seed % 4 === 0
+                        });
+                    }
+                }
+            }
+        }
+
+        if (buildingEntities.length < 2) return;
+
+        // --- 2. ALGORITHME DE CREATION DE CHEMINS (Avec Embranchements / T-Junctions) ---
+        let connected = [buildingEntities[0]]; // Le réseau commence par le premier bâtiment
+        let unconnected = buildingEntities.slice(1);
+        let edges = []; 
+
+        while (unconnected.length > 0) {
+            let bestDist = Infinity;
+            let bestUnconnected = null;
+            let bestTarget = null; 
+
+            // Cherche le bâtiment non-connecté le plus proche du réseau existant
+            for (let u of unconnected) {
+                // Vérifier la distance vers les nœuds (bâtiments ou carrefours)
+                for (let c of connected) {
+                    let d = Math.hypot(u.x - c.x, u.y - c.y);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        bestUnconnected = u;
+                        bestTarget = { type: 'node', node: c };
+                    }
+                }
+                
+                // Vérifier la distance vers le MILIEU des chemins existants (Embranchements)
+                for (let e of edges) {
+                    let proj = distToSegment(u, e.a, e.b);
+                    // On ne crée un carrefour que si on est au moins à 10% des bords du chemin
+                    if (proj.t > 0.1 && proj.t < 0.9 && proj.d < bestDist) {
+                        bestDist = proj.d;
+                        bestUnconnected = u;
+                        bestTarget = { type: 'edge', edge: e, pt: proj.pt };
+                    }
+                }
+            }
+
+            if (bestTarget.type === 'node') {
+                edges.push({ a: bestUnconnected, b: bestTarget.node, d: bestDist });
+            } else if (bestTarget.type === 'edge') {
+                // CREATION D'UN EMBRANCHEMENT (Coupe l'ancien chemin en deux)
+                let oldEdge = bestTarget.edge;
+                let wp = { 
+                    x: bestTarget.pt.x, 
+                    y: bestTarget.pt.y, 
+                    inNeighborhood: (oldEdge.a.inNeighborhood && oldEdge.b.inNeighborhood) 
+                };
+                connected.push(wp);
+
+                // Remplace l'ancien long chemin par 3 nouveaux petits chemins
+                edges = edges.filter(e => e !== oldEdge);
+                edges.push({ a: oldEdge.a, b: wp, d: Math.hypot(oldEdge.a.x - wp.x, oldEdge.a.y - wp.y) });
+                edges.push({ a: wp, b: oldEdge.b, d: Math.hypot(wp.x - oldEdge.b.x, wp.y - oldEdge.b.y) });
+                edges.push({ a: bestUnconnected, b: wp, d: bestDist });
+            }
+            
+            connected.push(bestUnconnected);
+            unconnected = unconnected.filter(u => u !== bestUnconnected);
+        }
+
+        globalConnections = edges;
+    }
+
+    function updateStats() {
+        stats.bld = 0; stats.pop = 0;
+        entities.forEach(e => {
+            if (e.type === 'house') { stats.bld++; stats.pop += 4; }
+            if (e.type === 'tavern') { stats.bld++; stats.pop += 15; }
+            if (e.type === 'tower') { stats.bld++; stats.pop += 8; }
+            if (e.type === 'market') { stats.bld++; stats.pop += 5;}
+            if (e.type === 'windmill') { stats.bld++; stats.pop += 2;}
+        });
+        document.getElementById('bld-count').innerText = stats.bld;
+        document.getElementById('pop-count').innerText = stats.pop;
+    }
+
+    function drawSmoke(cx, x, y, z, time) {
+        cx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        for (let i = 0; i < 3; i++) {
+            let t = time + i * 1.5;
+            let size = 3 + Math.sin(t) * 1.5;
+            let dx = Math.cos(t * 0.7) * 3;
+            let dz = (t % 4) * 5;
+            let p = iso(x + dx, y, z + dz);
+            cx.beginPath();
+            cx.arc(p.x, p.y, size, 0, Math.PI * 2);
+            cx.fill();
+        }
+    }
+
+    function drawHouse(cx, time = 0, details = {}) {
+        let rDark = details.roofVariant || PALETTE.roofDark;
+        let rLight = (details.roofVariant) ? '#a17967' : PALETTE.roofLight;
+
+        drawIsoPoly(cx, [{x:-12,y:12,z:0}, {x:-12,y:-12,z:0}, {x:-12,y:-12,z:20}, {x:-12,y:12,z:20}], PALETTE.wallLight); 
+        drawIsoPoly(cx, [{x:-12,y:12,z:0}, {x:12,y:12,z:0}, {x:12,y:12,z:20}, {x:-12,y:12,z:20}], PALETTE.wallDark); 
+        drawIsoPoly(cx, [{x:-12,y:12,z:20}, {x:-12,y:-12,z:20}, {x:-12,y:0,z:35}], PALETTE.wallLight); 
+        drawIsoPoly(cx, [{x:-12,y:12,z:20}, {x:12,y:12,z:20}, {x:12,y:0,z:35}, {x:-12,y:0,z:35}], rDark); 
+        drawIsoPoly(cx, [{x:-12,y:-12,z:20}, {x:12,y:-12,z:20}, {x:12,y:0,z:35}, {x:-12,y:0,z:35}], rLight); 
+        drawIsoPoly(cx, [{x:-4,y:12,z:0}, {x:4,y:12,z:0}, {x:4,y:12,z:10}, {x:-4,y:12,z:10}], PALETTE.woodDark);
+        
+        if (details.hasChimney) {
+            drawIsoPoly(cx, [{x:4,y:-6,z:20}, {x:8,y:-6,z:20}, {x:8,y:-6,z:40}, {x:4,y:-6,z:40}], PALETTE.stoneLight);
+            drawIsoPoly(cx, [{x:4,y:-6,z:20}, {x:4,y:-2,z:20}, {x:4,y:-2,z:40}, {x:4,y:-6,z:40}], PALETTE.stoneDark);
+            if (time > 0) drawSmoke(cx, 6, -4, 42, time);
+        }
+    }
+
+    function drawTavern(cx, time = 0, details = {}) {
+        drawIsoPoly(cx, [{x:-18,y:18,z:0}, {x:-18,y:-18,z:0}, {x:-18,y:-18,z:15}, {x:-18,y:18,z:15}], PALETTE.woodLight);
+        drawIsoPoly(cx, [{x:-18,y:-22,z:40}, {x:18,y:-22,z:40}, {x:18,y:0,z:55}, {x:-18,y:0,z:55}], PALETTE.roofLight);
+        drawIsoPoly(cx, [{x:2,y:20,z:0}, {x:10,y:20,z:0}, {x:10,y:20,z:12}, {x:2,y:20,z:12}], PALETTE.woodDark);
+        drawIsoPoly(cx, [{x:-10,y:20,z:0}, {x:-4,y:20,z:0}, {x:-4,y:20,z:6}, {x:-10,y:20,z:6}], '#825e49'); 
+        drawIsoPoly(cx, [{x:-14,y:-16,z:15}, {x:-10,y:-16,z:15}, {x:-10,y:-16,z:45}, {x:-14,y:-16,z:45}], PALETTE.stoneLight);
+        if (time > 0) drawSmoke(cx, -12, -16, 47, time);
+    }
+
+    function drawTower(cx, time = 0, details = {}) {
+        let b = 12, h = 45, tb = 15, th = h+15;
+        drawIsoPoly(cx, [{x:-b,y:b,z:0}, {x:-b,y:-b,z:0}, {x:-b,y:-b,z:h}, {x:-b,y:b,z:h}], PALETTE.stoneLight);
+        drawIsoPoly(cx, [{x:-b,y:b,z:0}, {x:b,y:b,z:0}, {x:b,y:b,z:h}, {x:-b,y:b,z:h}], PALETTE.stoneDark);
+        drawIsoPoly(cx, [{x:-tb,y:tb,z:h}, {x:-tb,y:-tb,z:h}, {x:-tb,y:-tb,z:th}, {x:-tb,y:tb,z:th}], PALETTE.stoneLight);
+        drawIsoPoly(cx, [{x:-tb,y:tb,z:h}, {x:tb,y:tb,z:h}, {x:tb,y:tb,z:th}, {x:-tb,y:tb,z:th}], PALETTE.stoneDark);
+        for(let i=0; i<3; i++) {
+            let offset = -tb + i*12;
+            drawIsoPoly(cx, [{x:offset,y:tb,z:th}, {x:offset+6,y:tb,z:th}, {x:offset+6,y:tb,z:th+6}, {x:offset,y:tb,z:th+6}], PALETTE.stoneDark);
+            drawIsoPoly(cx, [{x:-tb,y:offset,z:th}, {x:-tb,y:offset+6,z:th}, {x:-tb,y:offset+6,z:th+6}, {x:-tb,y:offset,z:th+6}], PALETTE.stoneLight);
+        }
+        drawIsoPoly(cx, [{x:-4,y:b,z:0}, {x:4,y:b,z:0}, {x:4,y:b,z:12}, {x:-4,y:b,z:12}], PALETTE.woodDark);
+        if (time > 0) {
+            let wave = Math.sin(time * 3) * 2;
+            drawIsoPoly(cx, [{x:0,y:0,z:th+6},{x:0,y:0,z:th+20}], PALETTE.woodDark);
+            drawIsoPoly(cx, [{x:0,y:0,z:th+18},{x:10,y:wave,z:th+18},{x:10,y:wave,z:th+10},{x:0,y:0,z:th+10}], '#e26d5c');
+        }
+    }
+
+    function drawMarket(cx, time = 0, details = {}) {
+        let p = 16, h = 20;
+        let bob = Math.sin(time * 2) * 1.5;
+        drawIsoPoly(cx, [{x:-18,y:18,z:0}, {x:-18,y:-18,z:0}, {x:-18,y:-18,z:2}, {x:-18,y:18,z:2}], PALETTE.woodLight);
+        drawIsoPoly(cx, [{x:-18,y:18,z:0}, {x:18,y:18,z:0}, {x:18,y:18,z:2}, {x:-18,y:18,z:2}], PALETTE.woodDark);
+        let drawPillar = (x,y) => {
+            drawIsoPoly(cx, [{x:x-1,y:y+1,z:2}, {x:x-1,y:y-1,z:2}, {x:x-1,y:y-1,z:h}, {x:x-1,y:y+1,z:h}], PALETTE.woodLight);
+            drawIsoPoly(cx, [{x:x-1,y:y+1,z:2}, {x:x+1,y:y+1,z:2}, {x:x+1,y:y+1,z:h}, {x:x-1,y:y+1,z:h}], PALETTE.woodDark);
+        };
+        drawPillar(-p, -p); drawPillar(p, -p); drawPillar(p, p); drawPillar(-p, p);
+        drawIsoPoly(cx, [{x:-10,y:10,z:2+bob}, {x:0,y:10,z:2+bob}, {x:0,y:10,z:8+bob}, {x:-10,y:10,z:8+bob}], '#e26d5c'); 
+        drawIsoPoly(cx, [{x:-10,y:10,z:2+bob}, {x:-10,y:0,z:2+bob}, {x:-10,y:0,z:8+bob}, {x:-10,y:10,z:8+bob}], '#e26d5c');
+        drawIsoPoly(cx, [{x:2,y:0,z:2+bob}, {x:12,y:0,z:2+bob}, {x:12,y:0,z:6+bob}, {x:2,y:0,z:6+bob}], '#5c9ead'); 
+        drawIsoPoly(cx, [{x:2,y:0,z:2+bob}, {x:2,y:-10,z:2+bob}, {x:2,y:-10,z:6+bob}, {x:2,y:0,z:6+bob}], '#5c9ead');
+        drawIsoPoly(cx, [{x:-20,y:20,z:h}, {x:-20,y:-20,z:h}, {x:-20,y:0,z:h+15}], PALETTE.woodLight); 
+        drawIsoPoly(cx, [{x:-20,y:20,z:h}, {x:20,y:20,z:h}, {x:20,y:0,z:h+15}, {x:-20,y:0,z:h+15}], PALETTE.roofDark); 
+        drawIsoPoly(cx, [{x:-20,y:-20,z:h}, {x:20,y:-20,z:h}, {x:20,y:0,z:h+15}, {x:-20,y:0,z:h+15}], PALETTE.roofLight);
+    }
+
+    function drawWindmill(cx, time = 0, details = {}) {
+        let finalScale = details.scale || 1;
+        if (typeof ASSETS !== 'undefined' && ASSETS.windmillTower.complete && ASSETS.windmillTower.naturalHeight > 0) {
+            cx.save();
+            let targetHeight = 85; 
+            let scale = targetHeight / ASSETS.windmillTower.naturalHeight;
+            let w = ASSETS.windmillTower.naturalWidth * scale * finalScale;
+            let h = ASSETS.windmillTower.naturalHeight * scale * finalScale;
+            
+            cx.drawImage(ASSETS.windmillTower, -w/2, -h + 10, w, h);
+            
+            if (ASSETS.windmillBlades.complete && ASSETS.windmillBlades.naturalHeight > 0) {
+                cx.save();
+                let rotorY = -h * 0.70; 
+                cx.translate(0, rotorY);
+                cx.rotate(time * 1.5);
+                let bw = ASSETS.windmillBlades.naturalWidth * scale * finalScale;
+                let bh = ASSETS.windmillBlades.naturalHeight * scale * finalScale;
+                cx.drawImage(ASSETS.windmillBlades, -bw/2, -bh/2, bw, bh);
+                cx.restore();
+            }
+            cx.restore();
+            return; 
+        }
+    }
+
+    function drawTree(cx, time = 0, details = {}) {
+        let leafColor = details.leafVariant || PALETTE.tree;
+        let sway = Math.sin(time * 1.5) * 2;
+        cx.fillStyle = PALETTE.woodDark; cx.fillRect(-3, -15, 6, 15);
+        cx.fillStyle = leafColor;
+        cx.beginPath(); cx.arc(sway, -25, 18, 0, Math.PI*2); cx.fill(); 
+    }
+
+    function drawPropHouse(cx) {
+        drawIsoPoly(cx, [{x:-6,y:6,z:0}, {x:-6,y:-6,z:0}, {x:-6,y:-6,z:10}, {x:-6,y:6,z:10}], PALETTE.wallLight); 
+        drawIsoPoly(cx, [{x:-6,y:6,z:0}, {x:6,y:6,z:0}, {x:6,y:6,z:10}, {x:-6,y:6,z:10}], PALETTE.wallDark); 
+        drawIsoPoly(cx, [{x:-6,y:6,z:10}, {x:6,y:6,z:10}, {x:6,y:0,z:18}, {x:-6,y:0,z:18}], PALETTE.roofDark); 
+        drawIsoPoly(cx, [{x:-6,y:-6,z:10}, {x:6,y:-6,z:10}, {x:6,y:0,z:18}, {x:-6,y:0,z:18}], PALETTE.roofLight);
+    }
+
+    function drawPropStall(cx) {
+        drawIsoPoly(cx, [{x:-8,y:8,z:0}, {x:8,y:8,z:0}, {x:8,y:8,z:4}, {x:-8,y:8,z:4}], PALETTE.woodDark);
+        drawIsoPoly(cx, [{x:-8,y:8,z:12}, {x:8,y:8,z:12}, {x:8,y:0,z:18}, {x:-8,y:0,z:18}], '#e26d5c');
+    }
+
+    function drawPropBarrel(cx) {
+        drawIsoPoly(cx, [{x:-3,y:3,z:0},{x:3,y:3,z:0},{x:3,y:3,z:6},{x:-3,y:3,z:6}], '#6a5035');
+        drawIsoPoly(cx, [{x:-3,y:3,z:6},{x:-3,y:-3,z:6},{x:3,y:-3,z:6},{x:3,y:3,z:6}], '#8a6b4e');
+    }
+
+    function drawPropFlower(cx) {
+        drawIsoPoly(cx, [{x:-3,y:3,z:0},{x:3,y:3,z:0},{x:3,y:3,z:4},{x:-3,y:3,z:4}], '#c27b55');
+        drawIsoPoly(cx, [{x:-3,y:3,z:4},{x:-3,y:-3,z:4},{x:3,y:-3,z:4},{x:3,y:3,z:4}], '#a66442');
+        cx.fillStyle = '#ef4444'; cx.beginPath(); cx.arc(0, -7, 2.5, 0, Math.PI*2); cx.fill(); 
+        cx.fillStyle = '#6ea06a'; cx.beginPath(); cx.arc(0, -4, 4, 0, Math.PI*2); cx.fill(); 
+    }
+
+    function drawPropBush(cx, time = 0) {
+        let sway = Math.sin(time * 2) * 1;
+        cx.fillStyle = '#5c8a5c'; cx.beginPath(); cx.ellipse(sway, -3, 8, 5, 0, 0, Math.PI*2); cx.fill();
+        cx.fillStyle = '#7fa16a'; cx.beginPath(); cx.ellipse(sway*0.5, -6, 6, 4, 0, 0, Math.PI*2); cx.fill();
+    }
+
+    function generateUIcons() {
+        const icons = [
+            {id: 'icon-house', fn: drawHouse}, {id: 'icon-tavern', fn: drawTavern},
+            {id: 'icon-tower', fn: drawTower}, {id: 'icon-market', fn: drawMarket}, 
+            {id: 'icon-windmill', fn: drawWindmill}, {id: 'icon-tree', fn: drawTree}
+        ];
+        icons.forEach(ic => {
+            const c = document.getElementById(ic.id);
+            if(!c) return;
+            const context = c.getContext('2d');
+            
+            context.clearRect(0, 0, c.width, c.height);
+            context.translate(c.width/2, c.height - 12); 
+            context.scale(0.55, 0.55); 
+            
+            context.fillStyle = PALETTE.grass;
+            context.beginPath();
+            context.ellipse(0, 0, 32, 16, 0, 0, Math.PI*2);
+            context.fill();
+
+            ic.fn(context, 0);
+            context.resetTransform();
+        });
+    }
+
+    function generateStartingCity() {
+        addEntity(0, 0, 'tower');
+        addEntity(-100, 80, 'house');
+        addEntity(120, -40, 'tavern');
+        addEntity(-80, 160, 'market');
+        addEntity(200, 100, 'windmill');
+    }
+
+    function gameLoop() {
+        ctx.fillStyle = PALETTE.grass;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.save();
+        ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.scale(cam.zoom, cam.zoom);
+        ctx.translate(-cam.x, -cam.y);
+
+        // --- FONCTION UTILITAIRE POUR DESSINER UNE COURBE ---
+        const drawCurve = (a, b, dist) => {
+            let midX = (a.x + b.x) / 2;
+            let midY = (a.y + b.y) / 2;
+            let dx = b.x - a.x;
+            let dy = b.y - a.y;
+            let offset = dist * 0.15; // Légère courbure organique
+            if (a.x + a.y > b.x + b.y) offset = -offset;
+            let nx = -dy / dist;
+            let ny = dx / dist;
+            let cpX = midX + nx * offset;
+            let cpY = midY + ny * offset;
+            ctx.moveTo(a.x, a.y);
+            ctx.quadraticCurveTo(cpX, cpY, b.x, b.y);
+        };
+
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // 1. CHEMINS RURAUX EN ARRIERE-PLAN (Terre battue connectant tout)
+        ctx.beginPath();
+        globalConnections.forEach(conn => drawCurve(conn.a, conn.b, conn.d));
+        ctx.strokeStyle = PALETTE.path; 
+        ctx.lineWidth = 22; 
+        ctx.stroke();
+
+        // 2. ZONES DE QUARTIER (Fond urbain continu gris qui recouvre la terre)
+        if (closePairs.length > 0) {
+            ctx.beginPath();
+            closePairs.forEach(pair => {
+                ctx.moveTo(pair.a.x, pair.a.y);
+                ctx.lineTo(pair.b.x, pair.b.y);
+            });
+            ctx.strokeStyle = PALETTE.plazaBase;
+            ctx.lineWidth = 140; // Très large pour créer la place
+            ctx.stroke();
+
+            // Cercles sous les bâtiments pour arrondir le quartier
+            ctx.fillStyle = PALETTE.plazaBase;
+            ctx.beginPath();
+            entities.forEach(e => {
+                if (e.inNeighborhood && e.type !== 'tree') {
+                    ctx.moveTo(e.x, e.y);
+                    ctx.arc(e.x, e.y, 70, 0, Math.PI * 2);
+                }
+            });
+            ctx.fill();
+        }
+
+        // 3. ROUTES URBAINES (Rues pavées gris sombre dessinées DANS le quartier)
+        ctx.beginPath();
+        globalConnections.forEach(conn => {
+            // Dessine seulement si les DEUX points sont dans le quartier urbain
+            if (conn.a.inNeighborhood && conn.b.inNeighborhood) {
+                drawCurve(conn.a, conn.b, conn.d);
+            }
+        });
+        ctx.strokeStyle = PALETTE.roadUrban;
+        ctx.lineWidth = 16; 
+        ctx.stroke();
+        
+        // Fusionner entités et props urbains pour le tri par profondeur (Y)
+        let allRenderables = entities.concat(urbanProps);
+        
+        entities.forEach(e => {
+            if(e.details && e.details.props) {
+                e.details.props.forEach(p => {
+                    allRenderables.push({ type: p.type, x: e.x + p.dx, y: e.y + p.dy, flip: false });
+                });
+            }
+        });
+        
+        allRenderables.sort((a, b) => a.y - b.y); 
+
+        let time = performance.now() / 1000;
+
+        allRenderables.forEach(e => {
+            if(e.x < cam.x - canvas.width/2 - 200 || e.x > cam.x + canvas.width/2 + 200 ||
+               e.y < cam.y - canvas.height/2 - 200 || e.y > cam.y + canvas.height/2 + 200) return;
+
+            ctx.save();
+            ctx.translate(e.x, e.y);
+            if (e.flip) ctx.scale(-1, 1);
+
+            if (e === hoveredEntity && !isDragging && !e.type.startsWith('prop_')) {
+                ctx.filter = 'brightness(1.15) drop-shadow(0px 0px 8px rgba(255,255,255,0.8))';
+            }
+
+            if (e.type === 'house') drawHouse(ctx, time, e.details);
+            else if (e.type === 'tavern') drawTavern(ctx, time, e.details);
+            else if (e.type === 'tower') drawTower(ctx, time, e.details);
+            else if (e.type === 'market') drawMarket(ctx, time, e.details);
+            else if (e.type === 'windmill') drawWindmill(ctx, time, e.details);
+            else if (e.type === 'tree') drawTree(ctx, time, e.details);
+            else if (e.type === 'prop_house') drawPropHouse(ctx);
+            else if (e.type === 'prop_stall') drawPropStall(ctx);
+            else if (e.type === 'barrel') drawPropBarrel(ctx);
+            else if (e.type === 'flowerpot') drawPropFlower(ctx);
+            else if (e.type === 'bush') drawPropBush(ctx, time);
+            
+            ctx.restore();
+        });
+
+        // 5. APERÇU DE CONSTRUCTION (Fantôme rouge/transparent)
+        if (!isDragging && selectedTool !== 'remove') {
+            ctx.save();
+            ctx.translate(mouseWorld.x, mouseWorld.y);
+            
+            if (!canBuild) {
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+                ctx.beginPath(); ctx.ellipse(0, 0, 40, 20, 0, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.globalAlpha = 0.4;
+            } else {
+                ctx.globalAlpha = 0.8;
+            }
+
+            if (selectedTool === 'house') drawHouse(ctx);
+            else if (selectedTool === 'tavern') drawTavern(ctx);
+            else if (selectedTool === 'tower') drawTower(ctx);
+            else if (selectedTool === 'market') drawMarket(ctx);
+            else if (selectedTool === 'windmill') drawWindmill(ctx, 0);
+            else if (selectedTool === 'tree') drawTree(ctx);
+            ctx.restore();
+            ctx.globalAlpha = 1.0;
+        }
+
+        if (!isDragging && selectedTool === 'remove') {
+            ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.arc(mouseWorld.x, mouseWorld.y, 35, 0, Math.PI*2); ctx.stroke();
+        }
+
+        ctx.restore();
+        requestAnimationFrame(gameLoop);
+    }
+
+    window.onload = init;
+
+</script>
+</body>
+</html>

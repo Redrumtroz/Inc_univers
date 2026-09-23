@@ -1,28 +1,36 @@
 const ResourceDB = {
-    ideas: { name: "Idées", amount: 0, max: 500, color: "#f59e0b", unlocked: true },
-    code: { name: "Lignes de Code", amount: 0, max: 300, color: "#38bdf8", unlocked: true },
-    gfx: { name: "Graphismes", amount: 0, max: 150, color: "#f43f5e", unlocked: false },
-    sound: { name: "Audio", amount: 0, max: 100, color: "#a855f7", unlocked: false }
+    wood: { name: "Bois", amount: 150, max: 1000, color: "#8a6b4e", unlocked: true },
+    stone: { name: "Pierre", amount: 50, max: 1000, color: "#a1a3a4", unlocked: true },
+    gold: { name: "Or", amount: 0, max: 500, color: "#f59e0b", unlocked: true },
+    mana: { name: "Mana", amount: 0, max: 100, color: "#8b5cf6", unlocked: false }
+};
+
+const BuildingDB = {
+    house: { name: "Maison", type: "house", desc: "+4 Pop", cost: { wood: 20 }, unlocked: true, pop_bonus: 4 },
+    tavern: { name: "Taverne", type: "tavern", desc: "+15 Pop", cost: { wood: 100, stone: 30 }, unlocked: true, pop_bonus: 15 },
+    tower: { name: "Garde", type: "tower", desc: "+8 Pop", cost: { wood: 50, stone: 100 }, unlocked: true, pop_bonus: 8 },
+    market: { name: "Halles", type: "market", desc: "+5 Pop", cost: { wood: 80, stone: 40, gold: 10 }, unlocked: false, pop_bonus: 5 },
+    windmill: { name: "Moulin", type: "windmill", desc: "+2 Pop", cost: { wood: 150, stone: 50 }, unlocked: true, pop_bonus: 2 }
+};
+
+const CityData = {
+    population: 0,
+    happiness: 0,
+    buildings_count: 0,
+    entities: [] // Stocke les bâtiments sur la carte {x, y, type, flip, id, details}
 };
 
 const GeneratorDB = {
-    intern: { name: "Stagiaire", amount: 0, baseCost: { ideas: 10 }, costMultiplier: 1.15, production: { ideas: 1 }, unlocked: true },
-    coder: { name: "Programmeur", amount: 0, baseCost: { ideas: 50 }, costMultiplier: 1.15, production: { code: 1 }, unlocked: true },
-    designer: { name: "Graphiste", amount: 0, baseCost: { ideas: 100, code: 50 }, costMultiplier: 1.15, production: { gfx: 1 }, unlocked: false }
+    lumberjack: { name: "Bûcheron", amount: 0, baseCost: { wood: 10 }, costMultiplier: 1.15, production: { wood: 1 }, unlocked: true },
+    miner: { name: "Carrière", amount: 0, baseCost: { wood: 50 }, costMultiplier: 1.15, production: { stone: 1 }, unlocked: true }
 };
 
 const UpgradeDB = {
-    coffee: { name: "Machine à Café", description: "Double la puissance du clic (Idées).", cost: { ideas: 50 }, purchased: false, unlocked: true },
-    git_repo: { name: "Dépôt Git", description: "Les programmeurs sont 2x plus efficaces.", cost: { code: 100 }, purchased: false, unlocked: true }
+    axes: { name: "Haches en Fer", description: "Clic (Bois) x2.", cost: { stone: 50 }, purchased: false, unlocked: true },
+    market_unlock: { name: "Permis de Commerce", description: "Débloque les Halles.", cost: { wood: 200, stone: 100 }, purchased: false, unlocked: true }
 };
 
-const SkillDB = {
-    engine_2d: { name: "Moteur 2D", desc: "Débloque la création visuelle.", icon: "⚙️", cost: { ideas: 100, code: 50 }, req: null, purchased: false, x: 100, y: 250 },
-    pixel_art: { name: "Pixel Art", desc: "Débloque le métier Graphiste.", icon: "🎨", cost: { code: 100 }, req: "engine_2d", purchased: false, x: 250, y: 150 },
-    sfx_synth: { name: "Synthétiseur SFX", desc: "Débloque la ressource Audio.", icon: "🎵", cost: { code: 150 }, req: "engine_2d", purchased: false, x: 250, y: 350 },
-    mini_game_td: { name: "Module Tower Defense", desc: "Création d'un mini-jeu !", icon: "🏹", cost: { code: 200, gfx: 50 }, req: "pixel_art", purchased: false, x: 400, y: 150 },
-    mini_game_rpg: { name: "Module RPG", desc: "Création d'un jeu de rôle.", icon: "⚔️", cost: { code: 300, sound: 50 }, req: "sfx_synth", purchased: false, x: 400, y: 350 }
-};
+const SkillDB = {}; // Arbre à remplir plus tard
 
 function getCost(genId, resId) { 
     return Math.floor(GeneratorDB[genId].baseCost[resId] * Math.pow(GeneratorDB[genId].costMultiplier, GeneratorDB[genId].amount)); 
